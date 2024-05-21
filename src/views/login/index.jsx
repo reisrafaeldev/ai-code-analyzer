@@ -23,7 +23,6 @@ const Login = () => {
   const [senha, setSenha] = useState();
   const [error, setError] = useState(false);
 
-  console.log(process.env.REACT_APP_GPT_KEY)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoad(true);
