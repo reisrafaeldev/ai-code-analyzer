@@ -66,7 +66,7 @@ export const Overflow = styled.div`
   justify-content: space-between;
   flex-direction: column;
   height: 100%;
-  max-height: calc(100vh - 9rem);
+  max-height: calc(100vh - 15rem);
   position: relative;
   padding-right: 0.5rem;
   &::-webkit-scrollbar {
@@ -116,7 +116,7 @@ export const Tab = styled.div`
   gap: 0.3rem;
   width: 100%;
   border-bottom: 2px solid #e53d00;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   padding: 0.3rem 0;
 `;
 
@@ -183,7 +183,7 @@ align-items: center;
 `
 export const Left  = styled.div`
 display: flex;
-width: 100%;
-flex:1;
+gap: 1rem;
 justify-content: flex-end;
+align-items: center;
 `

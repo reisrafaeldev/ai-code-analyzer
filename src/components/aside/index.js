@@ -13,10 +13,9 @@ const Aside = () => {
   const { setTitle } = useLogin();
   const nav = useNavigate();
   const [selectedOption, setSelectedOption] = useState("Google Bard");
-  console.log("selectedOption", selectedOption.value);
 
   const buttons = [
-    { label: "Auto Análise", iconType: "analise", path: "/home" },
+    { label: "Autoanálise", iconType: "analise", path: "/auto-analise" },
     {
       label: "Análise Estática",
       iconType: "desempenho",
@@ -30,7 +29,7 @@ const Aside = () => {
     {
       label: "Sobre",
       iconType: "erros",
-      path: "/code-generation",
+      path: "/sobre",
     },
   ];
   const [selectedButton, setSelectedButton] = useState("analise");
@@ -65,7 +64,7 @@ const Aside = () => {
   };
   const options = [
     { value: "gpt", label: "GPT", color: "#ff4b095f" },
-    { value: "bard", label: "Google Bard", color: "#a6a6a65f" },
+    { value: "bard", label: "Google Gemini", color: "#a6a6a65f" },
   ];
 
   const styles = {

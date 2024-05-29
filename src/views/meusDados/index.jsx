@@ -5,35 +5,40 @@ import { jsPDF } from "jspdf";
 import Aside from "../../components/aside";
 import { useLogin } from "../../contex/authContex";
 import Text from "../../components/text";
-import Button from "../../components/button";
-import axios from "axios";
-import Load from "../../components/load";
 import CodeSnippet from "../../components/CodeSnippet";
 import { ThreeCircles } from "react-loader-spinner";
 import { db } from "../../utils/config/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { CgCloseR } from "react-icons/cg";
-const MyData = () => {
+import Swal from "sweetalert2";
+const MeusDados = () => {
   const { title, user } = useLogin();
   const [data, setData] = useState([]);
   const [showCode, setShowCode] = useState();
 
-  console.log(data);
+  const fetchData = async () => {
+    const querySnapshot = await getDocs(collection(db, "code_documentation"));
+    let newData = []; 
+    querySnapshot.forEach((doc) => {
+      const userId = doc.data().user_id;
+      if (userId === user) {
+        newData.push({
+          data: doc.data().data,
+          title: doc.data().title,
+          id: doc.id,
+        }); 
+      }
+    });
+    setData(newData); 
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "code_documentation"));
-      let newData = []; // Inicializa newData fora do loop
-      querySnapshot.forEach((doc) => {
-        const userId = doc.data().user_id;
-        if (userId === user) {
-          newData.push({ data: doc.data().data, title: doc.data().title }); // Acumula dados válidos em newData
-          console.log("okk", doc.data().user_id);
-        }
-        console.log(`${doc.id} =>`, doc.data());
-      });
-      setData(newData); // Atualiza o estado uma única vez após o loop
-    };
-
     fetchData();
   }, [user]);
 
@@ -99,7 +104,24 @@ const MyData = () => {
       yPosition = addText(line, yPosition);
     });
 
-    doc.save("meu-pdf-com-multiplas-paginas.pdf");
+    doc.save("ai-code-analizer.pdf");
+  };
+
+
+  const removeFromFirestore = async (id) => {
+    console.log(id)
+    const docRef = doc(db, "code_documentation", id);
+
+    try {
+
+      await deleteDoc(docRef);
+      fetchData()
+      Swal.fire("Deletado com sucesso!!");
+
+      console.log("Entire Document has been deleted successfully.");
+    } catch (ex) {
+      console.log(ex);
+    }
   };
 
   return (
@@ -124,7 +146,7 @@ const MyData = () => {
 
           <S.Overflow>
             <S.ListContainer>
-              {data.map((data) => (
+              {data.map((item) => (
                 <>
                   <S.Row>
                     <Text
@@ -132,14 +154,17 @@ const MyData = () => {
                       fontSize="1rem"
                       color="rgba(255, 255, 255, 0.8)"
                     >
-                      {data.title}
+                      {item.title}
                     </Text>
                     <div>
-                      <S.Button onClick={() => generatePDF(data.data)}>
-                        Baixar{" "}
+                      <S.Button onClick={() => generatePDF(item.data)}>
+                        Baixar
                       </S.Button>
-                      <S.Button onClick={() => setShowCode(data.data)}>
-                        Exibir{" "}
+                      <S.Button onClick={() => setShowCode(item.data)}>
+                        Exibir
+                      </S.Button>
+                      <S.Button onClick={() => removeFromFirestore(item.id)}>
+                        Excluir
                       </S.Button>
                     </div>
                   </S.Row>
@@ -163,4 +188,4 @@ const MyData = () => {
   );
 };
 
-export default MyData;
+export default MeusDados;

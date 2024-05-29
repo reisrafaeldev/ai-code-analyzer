@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as S from "./styles";
+import * as P from "../../utils/config/prompt";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import Aside from "../../components/aside";
@@ -9,21 +10,23 @@ import Button from "../../components/button";
 import axios from "axios";
 import Load from "../../components/load";
 import CodeSnippet from "../../components/CodeSnippet";
-import { ThreeCircles } from "react-loader-spinner";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/config/firebase";
 import Swal from "sweetalert2";
-import { PROMPT, C_PROMPT, options, optionsAc } from "./helpers";
-
+import { options, optionsAc } from "./helpers";
 import { fetchChatGPTResponse } from "../../utils/config/openai";
-
-import * as P from "../../utils/config/prompt";
-
 import Chart from "../../components/chat";
+import InputComponent from "../../components/input";
 
 const AnaliseEstatica = () => {
   // const apiUrl = process.env.REACT_APP_API_URL;
   const apiUrl = "https://api.openai.com/v1/completions";
+  const bardApiUrlComplexidade = axios.create({
+    baseURL: "http://127.0.0.1:1100",
+  });
+  const bardApiUrlAcoplamento = axios.create({
+    baseURL: "http://127.0.0.1:1200",
+  });
   const bardApiUrl = process.env.REACT_APP_API_URL;
 
   const nav = useNavigate();
@@ -40,17 +43,20 @@ const AnaliseEstatica = () => {
   const { title, user } = useLogin();
   const [load, setLoad] = useState(false);
   const [fileName, setFileName] = useState();
+  const [complexidade, setComplexidade] = useState();
+  const [acoplamento, setAcoplamento] = useState();
+  const [documentName, setDocumentName] = useState();
 
   const [tab, setTab] = useState([
     { id: 1, name: "Arquivo 1", code: "", selected: true },
   ]);
   const defaultData = "Os seguintes tópicos foram analisados: \n\n";
   const [chartData, setChartData] = useState({
-    labels: ["Complexidade"], 
+    labels: ["Complexidade"],
     datasets: [
       {
         label: "Complexidade Ciclomática",
-        data: [25, 50], 
+        data: [5, 50],
         backgroundColor: "#e53d00",
         borderColor: "#f30000",
         borderWidth: 1,
@@ -58,22 +64,64 @@ const AnaliseEstatica = () => {
     ],
   });
   const [chartDataAc, setChartDataAc] = useState({
-    labels: ["Acoplamento"], 
+    labels: ["Acoplamento"],
     datasets: [
       {
         label: "Acoplamento",
-        data: [25, 50], 
+        data: [5, 50],
         backgroundColor: "#e53d00",
         borderColor: "#f30000",
         borderWidth: 1,
       },
     ],
   });
+  useEffect(() => {
+    console.log(complexidade);
+    if (complexidade && complexidade.complexidade) {
+      console.log(complexidade.complexidade);
+      const value = parseInt(complexidade.complexidade);
+
+      const newChartData = {
+        labels: ["Complexidade"],
+        datasets: [
+          {
+            label: "Nível de Complexidade",
+            data: [value, 50],
+            backgroundColor: "rgba(224, 49, 5, 0.452)",
+            borderColor: "#e53d00",
+            borderWidth: 1,
+          },
+        ],
+      };
+      setChartData(newChartData);
+    }
+  }, [complexidade]);
+
+  useEffect(() => {
+    if (acoplamento && acoplamento.acoplamento) {
+      const value = parseInt(acoplamento.acoplamento);
+
+      const newChartData = {
+        labels: ["Acoplamento"],
+        datasets: [
+          {
+            label: "Nível de Acoplamento",
+            data: [value, 50],
+            backgroundColor: "rgba(224, 49, 5, 0.452)",
+            borderColor: "#e53d00",
+            borderWidth: 1,
+          },
+        ],
+      };
+      setChartDataAc(newChartData);
+    }
+  }, [acoplamento]);
+
   const handleSubmit = async () => {
     setLoad(true);
-    setLoad(true);
+    handleAcoplamento();
+    handleComplexidade();
     const code = tab.map((item) => item.code).join(" ");
-    console.log(code)
 
     if (provider !== "gpt") {
       try {
@@ -82,7 +130,6 @@ const AnaliseEstatica = () => {
           code: JSON.stringify(code),
         });
         setResponse(response.data.response);
-        handleComplexidade();
       } catch (error) {
         setLoad(false);
       }
@@ -93,7 +140,6 @@ const AnaliseEstatica = () => {
         );
         setResponse(result.choices[0].message.content);
         setLoad(false);
-        handleComplexidade();
       } catch (error) {
         setLoad(false);
       }
@@ -103,46 +149,39 @@ const AnaliseEstatica = () => {
   useEffect(() => {
     try {
       const ws = new WebSocket("ws://localhost:4000");
-      ws.onopen = () => {
-        // console.log("WebSocket connection established");
-      };
+      ws.onopen = () => {};
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data).data;
         const fileName = JSON.parse(event.data).fileName;
-        // console.log("extension", JSON.parse(event.data));
         setFileContent(data);
-        // console.log(data);
       };
 
       return () => {
         ws.close();
       };
-    } catch (error) {
-      // console.error("Error initializing WebSocket:", error);
-    }
+    } catch (error) {}
   }, []);
   const handleClick = async () => {
     setLoad(true);
     const code = tab.map((item) => item.code).join(" ");
-    console.log(code)
+    console.log(code);
     const parameters = {
-        prompt: PROMPT + code,
-        created: 1677652288,
-        model: "gpt-3.5-turbo-0125",
-        max_tokens: 56,
-        temperature: 0.5,
+      prompt: PROMPT + code,
+      created: 1677652288,
+      model: "gpt-3.5-turbo-0125",
+      max_tokens: 56,
+      temperature: 0.5,
     };
 
     try {
-        const response = await api.post(apiUrl, parameters);
-        setResponse(response.data.response);
-        setLoad(false);
+      const response = await api.post(apiUrl, parameters);
+      setResponse(response.data.response);
+      setLoad(false);
     } catch (error) {
-        setLoad(false);
-        console.error("Error sending file content:", error);
+      setLoad(false);
+      console.error("Error sending file content:", error);
     }
-};
-
+  };
 
   const handleFileChange = (event, id) => {
     const file = event.target.files[0];
@@ -155,99 +194,84 @@ const AnaliseEstatica = () => {
         setTab((prevTabs) =>
           prevTabs.map((t) => ({
             ...t,
-            code: t.id === id ? content : t.code, // Update code only for the selected tab
+            code: t.id === id ? content : t.code,
           }))
         );
       };
-
       reader.readAsText(file);
     }
   };
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-
-    const addTitle = (title, y) => {
-      doc.setFontSize(18);
-      doc.text(title, 20, y);
-      doc.setFontSize(12);
-      return y + 20; // Ajuste conforme necessário
-    };
-
-    const addSeparator = (y) => {
-      doc.setLineWidth(0.5);
-      doc.line(20, y, doc.internal.pageSize.getWidth() - 20, y);
-      return y + 10;
-    };
-
-    const addText = (text, y, maxLines = 20) => {
-      const lineHeight = 10; // Ajuste conforme necessário
-      const pageHeight = doc.internal.pageSize.getHeight();
-
-      // Dividir o texto em linhas
-      const lines = doc.splitTextToSize(
-        text,
-        doc.internal.pageSize.getWidth() - 40
-      );
-
-      // Calcular o espaço necessário para o texto
-      const textHeight = lines.length * lineHeight;
-
-      // Verificar se há espaço suficiente na página atual
-      if (y + textHeight > pageHeight) {
-        // Não há espaço suficiente, criar uma nova página
-        doc.addPage();
-        y = 10; // Definir posição inicial na nova página
-      }
-
-      // Adicionar texto à página
-      doc.text(lines, 20, y);
-
-      return y + textHeight;
-    };
-
-    let yPosition = 10; // Posição inicial na primeira página
-
-    // Adicionar a imagem no topo do PDF
-    const logoDataURL = "/pdf-logo.jpeg";
-    doc.addImage(logoDataURL, "JPEG", 200, 10, 500, 500); // Ajuste conforme necessário
-
-    // Adicionar título
-    yPosition = addTitle("Relatório PDF", yPosition);
-
-    yPosition = addSeparator(yPosition);
-
-    // Adicionar conteúdo do response
-    const lines = doc.splitTextToSize(
-      defaultData + response,
-      doc.internal.pageSize.getWidth() - 40
-    );
-    lines.forEach((line) => {
-      yPosition = addText(line, yPosition);
-    });
-
-    doc.save("meu-pdf-com-multiplas-paginas.pdf");
-  };
-  const handleSave = () => {
-    setLoad(true);
-    saveData();
-  };
-
   const saveData = async () => {
-    try {
-      const docRef = await addDoc(collection(db, "code_documentation"), {
-        user_id: user,
-        data: response,
-        title: "teste",
-      });
-      setResponse("");
-      setLoad(false);
-      Swal.fire("Documentação Salva com sucesso!!");
-    } catch (e) {
-      setLoad(false);
-      Swal.fire("Falha ao salvar Documentação!!");
+    if (documentName) {
+      setLoad(true);
+
+      try {
+        const docRef = await addDoc(collection(db, "code_documentation"), {
+          user_id: user,
+          data: response,
+          title: documentName,
+        });
+        setResponse("");
+        setLoad(false);
+        Swal.fire("Documentação Salva com sucesso!!");
+      } catch (e) {
+        setLoad(false);
+        Swal.fire("Falha ao salvar Documentação!!");
+      }
+    } else {
+      Swal.fire("Nomeie o documento para salvar!");
     }
   };
+
+  const handleComplexidade = async () => {
+    if (provider !== "gpt") {
+      try {
+        const newresponse = await bardApiUrlComplexidade.post(
+          "/analisar_codigo",
+          {
+            prompt: P.COMPLEXIDADE_PROMPT,
+            code: JSON.stringify(fileContent),
+          }
+        );
+
+        console.log(newresponse.data.response);
+        P.extrairComplexidade(newresponse.data.response, setComplexidade);
+      } catch (error) {}
+    } else {
+      try {
+        const result = await fetchChatGPTResponse(
+          P.COMPLEXIDADE_PROMPT + JSON.stringify(fileContent)
+        );
+        P.extrairComplexidade(
+          result.choices[0].message.content,
+          setAcoplamento
+        );
+      } catch (error) {}
+    }
+  };
+  const handleAcoplamento = async () => {
+    if (provider !== "gpt") {
+      try {
+        const newresponse = await bardApiUrlAcoplamento.post(
+          "/analisar_acoplamento",
+          {
+            prompt: P.ACOPLAMENTO_PROMPT,
+            code: JSON.stringify(fileContent),
+          }
+        );
+        P.extrairAcoplamento(newresponse.data.response, setAcoplamento);
+      } catch (error) {}
+    } else {
+      try {
+        const result = await fetchChatGPTResponse(
+          P.ACOPLAMENTO_PROMPT + JSON.stringify(fileContent)
+        );
+        P.extrairAcoplamento(result.choices[0].message.content, setAcoplamento);
+      } catch (error) {}
+    }
+  };
+
   return (
     <S.Container>
       <Load active={load}></Load>
@@ -322,14 +346,23 @@ const AnaliseEstatica = () => {
                     >
                       Resultado
                     </Text>
-                    <Button
-                      justify={"center"}
-                      variant={"primary"}
-                      children={"Salvar Documento"}
-                      isSelected={false}
-                      width={"15rem"}
-                      onClick={handleSave}
-                    />
+                    <S.Left>
+                      <InputComponent
+                        type="email"
+                        label="Nome do Documento"
+                        onChangeText={(e) => setDocumentName(e.target.value)}
+                        required
+                      />
+                      <Button
+                        justify={"center"}
+                        variant={"primary"}
+                        children={"Salvar Documento"}
+                        isSelected={false}
+                        width={"15rem"}
+                        onClick={saveData}
+                        margin={"1.375rem 0 0 "}
+                      />
+                    </S.Left>
                   </S.ContainerResponseHeader>
                   <CodeSnippet fragment={defaultData + response} />
 
@@ -364,17 +397,7 @@ const AnaliseEstatica = () => {
 
             <S.ContainerResponse>
               {response ? (
-                <>
-                  {/* <CodeSnippet fragment={defaultData + response} />
-                  <Button
-                    justify={"center"}
-                    variant={"primary"}
-                    children={"Salvar Documento"}
-                    isSelected={false}
-                    width={"15rem"}
-                    onClick={handleSave}
-                  /> */}
-                </>
+                <></>
               ) : (
                 <div>
                   <Text

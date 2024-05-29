@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
 import * as S from "./styles";
-import { useNavigate } from "react-router-dom";
+import * as P from "../../utils/config/prompt";
+import * as H from "./helpers";
 import Aside from "../../components/aside";
 import Text from "../../components/text";
 import axios from "axios";
 import CodeSnippet from "../../components/CodeSnippet";
 import { ThreeCircles } from "react-loader-spinner";
-import * as H from "./helpers";
-import * as P from "../../utils/config/prompt";
-import {
-  PROMPT,
-} from "./helpers";
-import { Bar } from "react-chartjs-2";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,9 +17,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { options, optionsAc } from "../analiseEstatica/helpers";
 import Chart from "../../components/chat";
-
 import { fetchChatGPTResponse } from "../../utils/config/openai";
 
 ChartJS.register(
@@ -35,16 +29,21 @@ ChartJS.register(
   Legend
 );
 
-const Home = () => {
+const AutoAnalise = () => {
   const apiUrl = "https://api.openai.com/v1/completions";
   let provider = sessionStorage.getItem("iaOption");
-
   const bardApiUrl = process.env.REACT_APP_API_URL;
   const api = axios.create({
     headers: { Authorization: "Bearer " + process.env.REACT_APP_GPT_KEY },
   });
   const bardApi = axios.create({
     baseURL: bardApiUrl,
+  });
+  const bardApiUrlComplexidade = axios.create({
+    baseURL: 'http://127.0.0.1:1100',
+  });
+  const bardApiUrlAcoplamento = axios.create({
+    baseURL: 'http://127.0.0.1:1200',
   });
   const [fileContent, setFileContent] = useState(
     "Inicie o desenvolvimento para exibir seu código aqui!"
@@ -56,11 +55,11 @@ const Home = () => {
   const [fileName, setFileName] = useState();
   const defaultData = "Os seguintes tópicos foram analisados: \n\n";
   const [chartData, setChartData] = useState({
-    labels: ["Complexidade"], // Eixo X
+    labels: ["Complexidade"], 
     datasets: [
       {
         label: "Complexidade Ciclomática",
-        data: [25, 50], // Eixo Y
+        data: [25, 50], 
         backgroundColor: "#e53d00",
         borderColor: "#f30000",
         borderWidth: 1,
@@ -68,11 +67,11 @@ const Home = () => {
     ],
   });
   const [chartDataAc, setChartDataAc] = useState({
-    labels: ["Acoplamento"], // Eixo X
+    labels: ["Acoplamento"], 
     datasets: [
       {
         label: "Acoplamento",
-        data: [25, 50], // Eixo Y
+        data: [25, 50], 
         backgroundColor: "#e53d00",
         borderColor: "#f30000",
         borderWidth: 1,
@@ -82,7 +81,6 @@ const Home = () => {
 
   useEffect(() => {
     if (complexidade && complexidade.complexidade) {
-      console.log(complexidade.complexidade);
       const value = parseInt(complexidade.complexidade);
 
       const newChartData = {
@@ -103,15 +101,14 @@ const Home = () => {
 
   useEffect(() => {
     if (acoplamento && acoplamento.acoplamento) {
-      console.log(acoplamento.acoplamento);
-      const value = parseInt(acoplamento.acoplamento); // Correção aqui
+      const value = parseInt(acoplamento.acoplamento); 
 
       const newChartData = {
-        labels: ["Acoplamento"], // Exemplo de labels
+        labels: ["Acoplamento"], 
         datasets: [
           {
             label: "Nível de Acoplamento",
-            data: [value, 50], // Corrigido para usar apenas o valor convertido
+            data: [value, 50], 
             backgroundColor: "rgba(224, 49, 5, 0.452)",
             borderColor: "#e53d00",
             borderWidth: 1,
@@ -131,7 +128,6 @@ const Home = () => {
           const data = JSON.parse(event.data).data;
           const fileName = JSON.parse(event.data).fileName;
           setFileName(H.getFileName(fileName));
-          console.log(fileName)
           setFileContent(data);
         };
         return () => {
@@ -152,7 +148,8 @@ const Home = () => {
 
   const handleClick = async () => {
     setLoad(true);
-
+    handleAcoplamento();
+    handleComplexidade();
     if (provider !== "gpt") {
       try {
         const response = await bardApi.post("/analisar_codigo", {
@@ -160,7 +157,7 @@ const Home = () => {
           code: JSON.stringify(fileContent),
         });
         setResponse(response.data.response);
-        handleComplexidade();
+        setLoad(false);
       } catch (error) {
         setLoad(false);
       }
@@ -171,72 +168,56 @@ const Home = () => {
         );
         setResponse(result.choices[0].message.content);
         setLoad(false);
-        handleComplexidade();
       } catch (error) {
         setLoad(false);
       }
     }
-    setLoad(false);
   };
 
   const handleComplexidade = async () => {
     if (provider !== "gpt") {
       try {
-        const newresponse = await bardApi.post("/analisar_codigo", {
+        const newresponse = await bardApiUrlComplexidade.post("/analisar_complexidade", {
           prompt: P.COMPLEXIDADE_PROMPT,
           code: JSON.stringify(fileContent),
         });
-
-        console.log(newresponse.data.response);
         P.extrairComplexidade(newresponse.data.response, setComplexidade);
-        handleAcoplamento();
       } catch (error) {
-        setLoad(false);
+
       }
     } else {
       try {
         const result = await fetchChatGPTResponse(
           P.COMPLEXIDADE_PROMPT + JSON.stringify(fileContent)
         );
-        // Supondo que você queira tratar responseAc da mesma forma
         P.extrairComplexidade(
           result.choices[0].message.content,
           setAcoplamento
         );
-        handleAcoplamento();
-        setLoad(false);
       } catch (error) {
-        setLoad(false);
       }
     }
-    setLoad(false);
   };
   const handleAcoplamento = async () => {
     if (provider !== "gpt") {
       try {
-        const newresponse = await bardApi.post("/analisar_codigo", {
+        const newresponse = await bardApiUrlAcoplamento.post("/analisar_acoplamento", {
           prompt: P.ACOPLAMENTO_PROMPT,
           code: JSON.stringify(fileContent),
         });
-        console.log("aqui");
+       
         P.extrairAcoplamento(newresponse.data.response, setAcoplamento);
-        setLoad(false);
       } catch (error) {
-        setLoad(false);
       }
     } else {
       try {
         const result = await fetchChatGPTResponse(
           P.ACOPLAMENTO_PROMPT + JSON.stringify(fileContent)
         );
-        // Supondo que você queira tratar responseAc da mesma forma
         P.extrairAcoplamento(result.choices[0].message.content, setAcoplamento);
-        setLoad(false);
       } catch (error) {
-        setLoad(false);
       }
     }
-    setLoad(false);
   };
 
   return (
@@ -255,7 +236,7 @@ const Home = () => {
         <S.ContainerCenter>
           <S.ContainerTitle>
             <Text as={"h2"} fontSize="1.5rem" color="rgba(255, 255, 255, 0.8)">
-              Auto Análise
+              Autoanálise
             </Text>
           </S.ContainerTitle>
 
@@ -306,4 +287,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default AutoAnalise;

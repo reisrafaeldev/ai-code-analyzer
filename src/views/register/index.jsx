@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import * as S from "./index.styles";
+import * as S from "./styles";
 import { useNavigate } from "react-router-dom";
 import imageLogo from "../../assets/logo-marca.png";
-import imagePerson from "../../assets/logo.png";
 import Image from "../../components/image";
 import Text from "../../components/text";
 import Anchor from "../../components/anchor";
@@ -12,24 +11,23 @@ import Load from "../../components/load";
 import Swal from "sweetalert2";
 import { auth } from "../../utils/config/firebase";
 
-import {
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 const Register = () => {
   const nav = useNavigate();
-  const [data, setData] = useState({ email: "", password: "", password_twu: "" });
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+    password_twu: "",
+  });
 
   const [load, setLoad] = useState(false);
 
   const isEmailValid = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
+
     return emailRegex.test(email);
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (data.email && data.password && data.password_twu) {
@@ -41,18 +39,15 @@ const Register = () => {
         Swal.fire("Por favor, insira um e-mail válido!");
         return;
       }
-  
+
       setLoad(true);
       createUser();
-
     } else {
       Swal.fire("Preencha todos os campos!!");
     }
-
   };
 
   const createUser = async () => {
-
     await createUserWithEmailAndPassword(auth, data.email, data.password)
       .then((value) => {
         setLoad(false);
@@ -100,7 +95,9 @@ const Register = () => {
             type="password"
             label="Confirme a Senha"
             right={"-7.4rem"}
-            onChangeText={(e) => setData({ ...data, password_twu: e.target.value })}
+            onChangeText={(e) =>
+              setData({ ...data, password_twu: e.target.value })
+            }
           />
           <Button
             justify={"center"}
@@ -113,7 +110,6 @@ const Register = () => {
           </Button>
         </S.ContainerCenter>
       </S.Center>
-
     </S.Container>
   );
 };

@@ -1,9 +1,8 @@
 import React, { useEffect } from "react";
-import * as S from "./login.styles";
+import * as S from "./styles";
 import { useNavigate } from "react-router-dom";
 import InputComponent from "../../components/input";
 import logoBrand from "../../assets/logo-marca.png";
-import person from "../../assets/logo.png";
 import Image from "../../components/image";
 import Button from "../../components/button";
 import Anchor from "../../components/anchor";
@@ -43,7 +42,7 @@ const Login = () => {
         setUserAuth(value.user.uid);
         localStorage.setItem("user", value.user.uid);
         setLoad(false);
-        nav("/home");
+        nav("/auto-analise");
       })
       .catch((error) => {
         Swal.fire("Usuário ou senha inválidos!!");

@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import person from "../../assets/logo.png";
 import Text from "../../components/text";
 import Button from "../../components/button";
 import Image from "../../components/image";
 import InputComponent from "../../components/input";
-import * as S from "./recovery.styles";
+import * as S from "./styles";
 import Anchor from "../../components/anchor";
 import { useState } from "react";
 import Load from "../../components/load";
