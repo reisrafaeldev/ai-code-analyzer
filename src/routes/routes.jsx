@@ -10,6 +10,7 @@ import Auth from "../utils/config/auth";
 import RecoveryLogin from "../views/recovery";
 import MeusDados from "../views/meusDados";
 import Sobre from "../views/sobre";
+import Teste from "../views/teste";
 
 const Rotas = () => {
   return (
@@ -42,6 +43,7 @@ const Rotas = () => {
             }
           />
           <Route path="/register" element={<Register />} />
+          <Route path="/teste" element={<Teste />} />
           <Route path="/recovery" element={<RecoveryLogin />} />
           <Route
             path="/analise-estatica"

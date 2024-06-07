@@ -1,25 +1,48 @@
-export function calcularComplexidadeCiclomatica(codigo) {
-    // Contar o número de nós e arestas
-    const linhasDeCodigo = codigo.split('\n');
-    let numNodos = 1; // Começa com 1 para representar o ponto de entrada
-    let numArestas = 0;
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    for (const linha of linhasDeCodigo) {
-        const trimmedLine = linha.trim();
+const apiKey = "AIzaSyD1sKkal3bgXQWl0Ayqa2-cuI2gK-NM2vM";
+const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Ignorar linhas em branco e comentários
-        if (trimmedLine === '' || trimmedLine.startsWith('//')) {
-            continue;
-        }
+// Inicializa o modelo de IA generativa
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.0-pro",
+});
 
-        // Contar instruções que podem alterar o fluxo (if, else, for, while, switch, case, break)
-        if (/^(if|else|for|while|switch|case|break)\b/.test(trimmedLine)) {
-            numArestas += 2; // Cada instrução adiciona 2 arestas
-        }
+const generationConfig = {
+  temperature: 1,
+  topP: 1,
+  topK: 0,
+  maxOutputTokens: 2048,
+  responseMimeType: "text/plain",
+};
+
+export async function aiGeneration(prompt, text) {
+  try {
+    const fullPrompt = prompt + window.atob(text);
+    
+    // Usar generateContentStream para gerar conteúdo em streaming
+    const { stream, response } = await model.generateContentStream({
+      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+      generationConfig,
+    });
+
+    // Coletar e exibir cada parte do stream
+    let fullResponseText = '';
+    for await (const chunk of stream) {
+      if (chunk && chunk.text) {
+        fullResponseText += chunk.text();  // Concatenar texto de cada parte
+      }
     }
 
-    // Calcular a complexidade ciclomática usando a fórmula: M = E - N + 2P
-    const complexidadeCiclomatica = numArestas - numNodos + 2;
-
-    return complexidadeCiclomatica;
+    // Aguardar a resposta final (agregada)
+    const finalResponse = await response;
+    if (finalResponse && finalResponse.text) {
+      return finalResponse.text();
+    } else {
+      throw new Error('Resposta final da IA não encontrada ou incompleta.');
+    }
+  } catch (error) {
+    console.error('Erro na geração de texto pela IA:', error);
+    return ''; // Retorna uma string vazia em caso de erro.
+  }
 }
