@@ -6,15 +6,12 @@ const Auth = ({ children }) => {
   const { user } = useLogin();
   const nav = useNavigate();
   const userStorage = localStorage.getItem("user");
-
   useEffect(() => {
-    // Use useEffect para chamar navigate apenas depois que o componente foi renderizado.
-    if (!user && !userStorage) {
+    if (!user || !userStorage) {
       nav("/");
     }
   }, [user, nav]);
 
-  // Renderize o conteúdo normalmente, mesmo que o usuário não esteja autenticado.
   return <>{children}</>;
 };
 

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import * as S from "./styles";
+import * as H from "./helpers";
+
 import Button from "../button";
 import { useLogin } from "../../contex/authContex";
 import { useEffect } from "react";
@@ -7,12 +9,31 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../../utils/config/firebase";
 import Logo from "../../assets/logo-marca.png";
 import Image from "../image";
-import Select from "react-select";
 
-const Aside = () => {
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import Text from "../text";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const Aside = ({ chartData, fileName, isResponse }) => {
   const { setTitle } = useLogin();
   const nav = useNavigate();
-  const [selectedOption, setSelectedOption] = useState("Google Bard");
 
   const buttons = [
     { label: "Autoanálise", iconType: "analise", path: "/auto-analise" },
@@ -22,8 +43,13 @@ const Aside = () => {
       path: "/analise-estatica",
     },
     {
+      label: "Análise de Repositório",
+      iconType: "repositorio",
+      path: "/analise-repositorio",
+    },
+    {
       label: "Meus Documentos",
-      iconType: "complexidade",
+      iconType: "documentos",
       path: "/data",
     },
     {
@@ -57,16 +83,11 @@ const Aside = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
+      localStorage.removeItem("user");
       nav("/");
     } catch (error) {
-      console.error("Erro ao fazer logout", error.message);
     }
   };
-  const options = [
-    { value: "gpt", label: "GPT", color: "#ff4b095f" },
-    { value: "bard", label: "Google Gemini", color: "#a6a6a65f" },
-  ];
-
   const styles = {
     option: (provided, state) => ({
       ...provided,
@@ -86,20 +107,7 @@ const Aside = () => {
   return (
     <S.Aside>
       <Image src={Logo} width={"11.875rem"} />
-      <S.SelectContainer>
-        <label>Selecione o Moldeo de IA</label>
-        <Select
-          defaultValue={selectedOption}
-          onChange={(value) => (
-            setSelectedOption(value), sessionStorage.setItem("iaOption", value.value)
-          )}
-          options={options}
-          styles={styles}
-          myFontSize="16px"
-          placeholder="Modelo de IA"
-          className="basic-single"
-        />
-      </S.SelectContainer>
+      <S.Separator />
       {buttons.map((button) => (
         <Button
           key={button.iconType}
@@ -115,7 +123,32 @@ const Aside = () => {
           )}
         />
       ))}
+      {isResponse && (
+        <>
+          <S.Separator />
+          <S.ContainerGrafics>
+            <div>
+              {fileName && (
+                <Text
+                  as={"h3"}
+                  fontSize="14px"
+                  color="rgba(255, 255, 255, 0.8)"
+                  margin={"0"}
+                >
+                  Nome do arquivo: {fileName}
+                </Text>
+              )}
+            </div>
 
+            <div>
+              <Bar data={chartData} options={H.options} height={200} />
+            </div>
+            {/* <div>
+        <Bar data={chartDataAc} options={H.optionsAc} height={200} />
+      </div> */}
+          </S.ContainerGrafics>
+        </>
+      )}
       <S.BottonContainer>
         <Button
           children={"Sair"}

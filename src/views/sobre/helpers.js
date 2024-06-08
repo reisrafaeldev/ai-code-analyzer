@@ -1,0 +1,3 @@
+export const TEXT = `<p>A ferramenta AI Code Analyzer é desenvolvida com o objetivo de elevar a qualidade do código-fonte através da aplicação de inteligência artificial para detectar falhas, avaliar métricas de qualidade e propor melhorias. Incorporando tecnologias avançadas como JavaScript, React, Firebase e o modelo Google Gemini, a ferramenta se integra ao ambiente de desenvolvimento, oferecendo uma análise em tempo real do código.</p>
+<br>
+<p>Os principais benefícios da AI Code Analyzer incluem a melhoria contínua da qualidade do código, a prevenção da deterioração do código e o apoio à cultura de codificação robusta e segura, alinhando-se com as práticas de desenvolvimento modernas e promovendo a eficiência e sustentabilidade dos projetos de software.</p>`;

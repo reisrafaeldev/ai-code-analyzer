@@ -14,69 +14,42 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/config/firebase";
 import Swal from "sweetalert2";
 import { fetchRepositoryFiles, line, options, optionsAc } from "./helpers";
-import { fetchChatGPTResponse } from "../../utils/config/openai";
-import Chart from "../../components/chat";
 import InputComponent from "../../components/input";
 import { aiGeneration } from "../../utils/analise";
 
-const Teste = () => {
-  const bardApiUrlComplexidade = axios.create({
-    baseURL: "http://127.0.0.1:1100",
-  });
-  const bardApiUrlAcoplamento = axios.create({
-    baseURL: "http://127.0.0.1:1200",
-  });
-  const bardApiUrl = process.env.REACT_APP_API_URL;
+const AnaliseRepositorio = () => {
   const defaultData = "Os seguintes tópicos foram analisados: \n\n";
 
-  let provider = sessionStorage.getItem("iaOption");
-  // );
   const [response, setResponse] = useState("");
-  const [fileContent, setFileContent] = useState([]);
   const { title, user } = useLogin();
   const [load, setLoad] = useState(false);
-  const [fileName, setFileName] = useState();
-  const [complexidade, setComplexidade] = useState();
-  const [acoplamento, setAcoplamento] = useState();
   const [documentName, setDocumentName] = useState();
   const [count, setCount] = useState(0);
   const [data, setData] = useState({ link: "", token: "" });
   const [responseData, setResponseData] = useState([]);
   const [files, setFiles] = useState([]);
   const [emptyResponseCount, setEmptyResponseCount] = useState(0);
-  console.log(responseData);
+  const [buttonLoad, setButtonLoad] = useState(false);
+
   useEffect(() => {
-    if (responseData.length >=1) {
+    if (responseData.length >= 1) {
       const combinedContent = responseData
         .map(
-          (item) => `Caminho do arquivo: ${item.name}\n\n ${item.content}${line}`
+          (item) =>
+            `Caminho do arquivo: ${item.name}\n\n ${item.content}${line}`
         )
         .join("\n\n");
       setResponse(combinedContent);
-      console.log(combinedContent);
-      setLoad(false);
-      console.log("Carregamento concluído");
     }
   }, [responseData]);
 
-  // const handleFileChange = (event, id) => {
-  //   const file = event.target.files[0];
-
-  //   if (file) {
-  //     const reader = new FileReader();
-
-  //     reader.onload = (e) => {
-  //       const content = e.target.result;
-  //       setTab((prevTabs) =>
-  //         prevTabs.map((t) => ({
-  //           ...t,
-  //           code: t.id === id ? content : t.code,
-  //         }))
-  //       );
-  //     };
-  //     reader.readAsText(file);
-  //   }
-  // };
+  useEffect(() => {
+    if (files.length == count + emptyResponseCount) {
+      setLoad(false);
+    } else {
+      setLoad(true);
+    }
+  }, [count, emptyResponseCount]);
 
   const saveData = async () => {
     if (documentName) {
@@ -99,14 +72,13 @@ const Teste = () => {
       Swal.fire("Nomeie o documento para salvar!");
     }
   };
-  console.log(response);
-  console.log(responseData);
-  console.log(responseData.length);
 
   const handleRepository = () => {
     if (data.link && data.token) {
+      setButtonLoad(true);
       fetchRepositoryFiles(data).then((data) => {
         if (data) {
+          setButtonLoad(false);
           setFiles(data);
         }
       });
@@ -117,33 +89,33 @@ const Teste = () => {
 
   const handleAnalyser = async () => {
     setLoad(true);
-    setCount(0); // Reinicia o contador de arquivos processados
-    setEmptyResponseCount(0); // Reinicia o contador de respostas vazias
-  
+    setCount(0);
+    setEmptyResponseCount(0);
+
     if (files.length >= 1) {
-      let newResponses = []; // Para armazenar as respostas válidas
-  
+      let newResponses = [];
       for (const file of files) {
         try {
-          const response = await aiGeneration(P.DOCUMENTACAO_PROMPT, file.content);
+          const response = await aiGeneration(
+            P.DOCUMENTACAO_PROMPT,
+            file.content
+          );
           if (response.trim() !== "") {
             newResponses.push({ name: file.name, content: response });
-            setResponseData(prev => [...prev, { name: file.name, content: response }]);
-            setCount(prevCount => prevCount + 1); 
+            setResponseData((prev) => [
+              ...prev,
+              { name: file.name, content: response },
+            ]);
+            setCount((prevCount) => prevCount + 1);
           } else {
-            setEmptyResponseCount(prevCount => prevCount + 1); 
+            setEmptyResponseCount((prevCount) => prevCount + 1);
           }
-        } catch (error) {
-          console.error("Erro durante a análise do arquivo:", file.name, error);
-        }
+        } catch (error) {}
       }
-  
-      setLoad(false);
     } else {
       Swal.fire("Preencha todos os campos para analisar!!");
     }
   };
-  
 
   return (
     <S.Container>
@@ -155,15 +127,6 @@ const Teste = () => {
             <Text as={"h2"} fontSize="1.5rem" color="rgba(255, 255, 255, 0.8)">
               Analise Estática - GitHub
             </Text>
-            <Button
-              justify={"center"}
-              variant={"primary"}
-              children={"Analisar Código"}
-              isSelected={false}
-              width={"15rem"}
-              height={"3rem"}
-              onClick={() => {}}
-            />
           </S.ContainerTitle>
 
           <S.ContainerInput>
@@ -192,9 +155,10 @@ const Teste = () => {
             <Button
               justify={"center"}
               variant={"primary"}
-              children={"Salvar"}
+              children={"Inserir"}
               isSelected={false}
-              width={"10%"}
+              load={buttonLoad}
+              width={"6rem"}
               margin={"0 0 14px"}
               height={"3rem"}
               onClick={handleRepository}
@@ -222,6 +186,7 @@ const Teste = () => {
               />
             </>
           )}
+          <S.Separator />
           <S.Overflow>
             <S.ContainerResponse>
               {responseData.length >= 1 ? (
@@ -272,4 +237,4 @@ const Teste = () => {
   );
 };
 
-export default Teste;
+export default AnaliseRepositorio;

@@ -19,22 +19,13 @@ export const Image = styled.img``;
 
 export const Aside = styled.aside`
   height: 100%;
-  width: 15.625rem;
+  width: 13.625rem;
   background: #1a202c;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   box-sizing: border-box;
-
-  /* div {
-    flex: 1;
-    display: flex;
-    align-items: flex-end;
-  } */
-  img {
-    margin-bottom: 2rem;
-  }
 `;
 export const SelectContainer = styled.div`
   width: 100%;
@@ -43,7 +34,7 @@ export const SelectContainer = styled.div`
   flex-direction: column;
   margin-bottom: 2rem;
 
-  label{
+  label {
     color: #fff;
     font-size: 0.75rem;
   }
@@ -55,4 +46,27 @@ export const BottonContainer = styled.div`
   flex-direction: column;
   justify-content: flex-end;
   margin-bottom: 1rem;
+`;
+
+export const Separator = styled.hr`
+  background-color: #e53d00;
+  border: none;
+  height: 2px;
+`;
+export const ContainerGrafics = styled.div`
+  display: flex;
+  width: 12.625rem;
+  align-items: center;
+  flex-direction: column;
+  padding-right: 1rem;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex: 1;
+  margin-top: 1rem;
+
+  div {
+    width: 100%;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
 `;

@@ -4,13 +4,12 @@ import Register from "../views/register";
 import Login from "../views/login";
 import { LoginContexProvider } from "../contex/authContex";
 import Desempenho from "../views/sobre";
-import Semantica from "../views/semantica";
 import AnaliseEstatica from "../views/analiseEstatica";
 import Auth from "../utils/config/auth";
 import RecoveryLogin from "../views/recovery";
 import MeusDados from "../views/meusDados";
 import Sobre from "../views/sobre";
-import Teste from "../views/teste";
+import AnaliseRepositorio from "../views/analiseRepositorio";
 
 const Rotas = () => {
   return (
@@ -18,6 +17,7 @@ const Rotas = () => {
       <LoginContexProvider>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="*" element={<Login />} />
           <Route
             path="/auto-analise"
             element={
@@ -34,16 +34,15 @@ const Rotas = () => {
               </Auth>
             }
           />
+          <Route path="/register" element={<Register />} />
           <Route
-            path="/semantica"
+            path="/analise-repositorio"
             element={
               <Auth>
-                <Semantica />
+                <AnaliseRepositorio />
               </Auth>
             }
           />
-          <Route path="/register" element={<Register />} />
-          <Route path="/teste" element={<Teste />} />
           <Route path="/recovery" element={<RecoveryLogin />} />
           <Route
             path="/analise-estatica"

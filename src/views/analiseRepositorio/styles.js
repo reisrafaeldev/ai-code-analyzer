@@ -9,12 +9,11 @@ export const Container = styled.div`
   justify-content: center;
   align-items: center;
   position: relative;
-  
-  .load-wrapper{
+
+  .load-wrapper {
     position: absolute;
     z-index: 1000;
     left: calc(50% + 80px);
-    
   }
 `;
 
@@ -66,7 +65,7 @@ export const Overflow = styled.div`
   justify-content: space-between;
   flex-direction: column;
   height: 100%;
-  max-height: calc(100vh - 17rem);
+  max-height: calc(100vh - 31rem);
   position: relative;
   padding-right: 0.5rem;
   margin-top: 1.5rem;
@@ -128,15 +127,11 @@ export const CloseIcon = styled(IoClose)`
 `;
 
 export const ContainerInput = styled.div`
-display: flex;
-justify-content: space-between;
-align-items: flex-end;
-width: 100%;
-gap: 1rem;
-div{
-flex: 1;
-}
-  
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  gap: 1rem;
 `;
 export const PdfButton = styled.button`
   padding: 0.6rem 0.625rem;
@@ -165,22 +160,20 @@ export const ContainerResponse = styled.div`
   flex-direction: column;
   justify-content: flex-end;
   gap: 1rem;
-
 `;
 
-export const ContainerResponseHeader  = styled.div`
-display: flex;
-width: 100%;
-justify-content: space-between;
-align-items: center;
-
-`
-export const Left  = styled.div`
-display: flex;
-gap: 1rem;
-justify-content: flex-end;
-align-items: center;
-`
+export const ContainerResponseHeader = styled.div`
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+`;
+export const Left = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+`;
 
 export const ContainerFileButton = styled.div`
   width: fit-content;
@@ -199,4 +192,10 @@ export const ContainerFileButton = styled.div`
     cursor: pointer;
     margin-bottom: 1rem;
   }
+`;
+
+export const Separator = styled.hr`
+  background-color: #e53d00;
+  border: none;
+  height: 2px;
 `;

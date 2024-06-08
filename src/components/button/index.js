@@ -1,6 +1,9 @@
 import * as S from "./styles";
 import { useNavigate } from "react-router-dom";
 import { DiGoogleAnalytics } from "react-icons/di";
+import { RiGitRepositoryCommitsFill } from "react-icons/ri";
+import { IoMdDocument } from "react-icons/io";
+
 import {
   MdOutlineNearbyError,
   MdOutlineAutoGraph,
@@ -9,11 +12,13 @@ import {
 import { TbFileAnalytics } from "react-icons/tb";
 import { BsArrowRightSquare } from "react-icons/bs";
 import { VscGraph } from "react-icons/vsc";
+import { ThreeCircles } from "react-loader-spinner";
 
 const Button = ({
   type,
   href,
   width,
+  load=false,
   height,
   margin,
   justify,
@@ -43,8 +48,11 @@ const Button = ({
       case "design":
         return <MdDesignServices size={30} color={"#E53D00"} />;
 
-      case "complexidade":
-        return <MdOutlineAutoGraph size={30} color={"#E53D00"} />;
+      case "documentos":
+        return <IoMdDocument size={30} color={"#E53D00"} />;
+
+      case "repositorio":
+        return <RiGitRepositoryCommitsFill size={30} color={"#E53D00"} />;
 
       case "sair":
         return <BsArrowRightSquare size={25} color={"#E53D00"} />;
@@ -57,18 +65,30 @@ const Button = ({
   switch (variant) {
     case "primary":
       return (
-        <S.Button
-          justify={justify}
-          type={type}
-          width={width}
-          height={height}
-          margin={margin}
-          background={background}
-          onClick={onClick}
-          variant={variant}
-        >
-          {children}
-        </S.Button>
+        <S.LoadContainer>
+          <S.Button
+            justify={justify}
+            type={type}
+            width={width}
+            height={height}
+            margin={margin}
+            background={background}
+            onClick={onClick}
+            variant={variant}
+          >
+            {children}
+          </S.Button>
+          <S.Load
+            visible={load}
+            height="25"
+            width="25"
+            color="#fff"
+            ariaLabel="loading"
+            wrapperStyle={{}}
+            wrapperClass="loading"
+            
+          />
+        </S.LoadContainer>
       );
 
     case "secondary":

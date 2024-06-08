@@ -20,7 +20,6 @@ const Login = () => {
   const [load, setLoad] = useState(false);
   const [email, setEmail] = useState();
   const [senha, setSenha] = useState();
-  const [error, setError] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +33,7 @@ const Login = () => {
       Swal.fire("Preencha todos os campos!!");
     }
   };
+const apiKey = process.env.REACT_APP_AI_KEY;
 
   const loginUser = async (email, password) => {
     await signInWithEmailAndPassword(auth, email, password)
@@ -51,6 +51,13 @@ const Login = () => {
         setLoad(false);
       });
   };
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+
+    if (user) {
+     nav("/auto-analise");
+    }
+  }, []);
   return (
     <S.Container>
       <Load active={load} />

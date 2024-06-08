@@ -28,10 +28,8 @@ export const LoginContexProvider = ({ children }) => {
   const resetPassword = async (email) => {
     await sendPasswordResetEmail(auth, email)
       .then((value) => {
-        // Swal.fire("Enviado com sucesso! Verifique sua caixa de entrada!");
       })
       .catch((error) => {
-        // Swal.fire("E-mail não cadastrado!");
       });
   };
 
@@ -47,7 +45,6 @@ export const LoginContexProvider = ({ children }) => {
     await createUserWithEmailAndPassword(auth, email, password)
       .then((value) => {
         setResponse(true);
-        // nav("/");
       })
       .catch((error) => {
         setResponse(false);

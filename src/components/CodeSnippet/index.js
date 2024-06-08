@@ -5,6 +5,7 @@ import * as S from "./styles";
 
 const CodeSnippet= ({
   type = "default",
+  key,
   fragment,
   disabled = false,
   onChange,
@@ -21,7 +22,7 @@ const CodeSnippet= ({
   };
 
   return (
-    <S.Content>
+    <S.Content key={key}>
       <div data-color-mode="light">
         <CodeEditor
           value={fragment}

@@ -7,10 +7,10 @@ export const ANALISE_PROMPT = `You are a senior software engineer and are tasked
 This analysis should help the developer understand the positive and negative aspects of the provided code, guiding significant improvements to achieve robust, secure and high-quality software. Provide code examples where appropriate to illustrate your recommendations and refactoring suggestions.
 The answer must be in the pt-br language
 `;
+
 export const COMPLEXIDADE_PROMPT = `You are a senior software engineer and are doing a source code analysis below to evaluate cyclomatic complexity according to McCabe's parameters:
 Desired output pattern:
 complexity: value in number format
-Assessment: Simple method. Low risk.
 The answer must be in the pt-br language
 `;
 export const ACOPLAMENTO_PROMPT = `You are a senior software engineer and are doing a source code analysis below to quantify coupling:
@@ -26,22 +26,19 @@ export const DOCUMENTACAO_PROMPT = `You are a senior software engineer and are t
 4. Coupling: Analyze the coupling between code modules. Discuss how tight or loose coupling affects software maintainability and testability. Suggest strategies to improve coupling, aiming to optimize the modularity and independence of components.
 5. Design Patterns and Best Practices: If applicable, review use of design patterns and adherence to programming best practices. Suggest adjustments and implementations of standards that can optimize the architecture and functioning of the code.
 Create code documentation. Provide code examples where appropriate to illustrate your recommendations and refactoring suggestions.
-The answer must be in the pt-br language: `
+The answer must be in the pt-br language: `;
 
 export const extrairComplexidade = (textoJson, setSetComplexidade) => {
   const regexComplexidade = /complexidade\s*:\s*(\d+)/;
-  const regexAvaliacao = /avaliação\s*:\s*(.+)/;
   const complexidadeMatch = textoJson.match(regexComplexidade);
-  const avaliacaoMatch = textoJson.match(regexAvaliacao);
 
   return setSetComplexidade({
     complexidade: complexidadeMatch && complexidadeMatch[1],
-    avaliacao: avaliacaoMatch && avaliacaoMatch[1],
   });
 };
 
 export const extrairAcoplamento = (textoJson, setAcoplamento) => {
-  const regexAcoplamento = /acoplamento\s*:\s*(\d+)/;
+  const regexAcoplamento = /complexidade\s*:\s*(\d+)/;
   const acoplamentoMatch = textoJson.match(regexAcoplamento);
 
   return setAcoplamento({

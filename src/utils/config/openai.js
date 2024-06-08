@@ -16,7 +16,6 @@ export const fetchChatGPTResponse = async (message) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Erro ao chamar a API do ChatGPT:', error);
     throw error;
   }
 };

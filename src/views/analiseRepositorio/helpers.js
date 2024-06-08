@@ -63,11 +63,10 @@ export const fetchRepositoryFiles = async (data) => {
     );
     return filteredFiles;
   } catch (error) {
-    console.error("Erro ao buscar repositório:", error);
     return [];
   }
 };
 
-export const line = `\n${'-'.repeat(150)}`;
+export const line = `\n${'-'.repeat(100)}`;
 
    

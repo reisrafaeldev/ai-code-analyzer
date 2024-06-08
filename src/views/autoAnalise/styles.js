@@ -67,7 +67,7 @@ export const Overflow = styled.div`
   justify-content: flex-start;
   flex-direction: column;
   height: 100%;
-  max-height: calc(100vh - 9rem);
+  max-height: calc(100vh - 11rem);
   position: relative;
   padding-right: 0.5rem;
   &::-webkit-scrollbar {
@@ -85,6 +85,9 @@ export const ContainerTitle = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
+  display: flex;
+  flex-direction: column;
+margin-bottom: 1rem ;
 `;
 
 export const TabButton = styled.button`

@@ -66,7 +66,7 @@ export const Overflow = styled.div`
   justify-content: space-between;
   flex-direction: column;
   height: 100%;
-  max-height: calc(100vh - 15rem);
+  max-height: calc(100vh - 19rem);
   position: relative;
   padding-right: 0.5rem;
   &::-webkit-scrollbar {
@@ -180,10 +180,12 @@ width: 100%;
 justify-content: space-between;
 align-items: center;
 
+
 `
 export const Left  = styled.div`
 display: flex;
 gap: 1rem;
 justify-content: flex-end;
 align-items: center;
+
 `

@@ -1,3 +1,4 @@
+import { ThreeCircles } from "react-loader-spinner";
 import styled, { css } from "styled-components";
 
 const buttonStyles = css`
@@ -48,3 +49,18 @@ export const Button = styled.button`
     transition: color 0.2s !important;
   }
 `;
+
+export const LoadContainer = styled.div`
+position: relative;
+
+.loading{
+  position: absolute;
+bottom: 28px;
+  left: calc(50% - 15px);
+}
+`
+
+export const Load = styled(ThreeCircles)`
+position: absolute;
+top: 0;
+`

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as S from "./styles";
 import * as P from "../../utils/config/prompt";
 import * as H from "./helpers";
@@ -17,8 +17,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import Chart from "../../components/chat";
-import { fetchChatGPTResponse } from "../../utils/config/openai";
+import { aiAutoGeneration, aiComplexidadeAnalyser } from "../../utils/analise";
 
 ChartJS.register(
   CategoryScale,
@@ -30,55 +29,26 @@ ChartJS.register(
 );
 
 const AutoAnalise = () => {
-  const apiUrl = "https://api.openai.com/v1/completions";
-  let provider = sessionStorage.getItem("iaOption");
-  const bardApiUrl = process.env.REACT_APP_API_URL;
-  const api = axios.create({
-    headers: { Authorization: "Bearer " + process.env.REACT_APP_GPT_KEY },
-  });
-  const bardApi = axios.create({
-    baseURL: bardApiUrl,
-  });
-  const bardApiUrlComplexidade = axios.create({
-    baseURL: 'http://127.0.0.1:1100',
-  });
-  const bardApiUrlAcoplamento = axios.create({
-    baseURL: 'http://127.0.0.1:1200',
-  });
   const [fileContent, setFileContent] = useState(
     "Inicie o desenvolvimento para exibir seu código aqui!"
   );
   const [response, setResponse] = useState();
   const [complexidade, setComplexidade] = useState();
-  const [acoplamento, setAcoplamento] = useState();
   const [load, setLoad] = useState(false);
   const [fileName, setFileName] = useState();
   const defaultData = "Os seguintes tópicos foram analisados: \n\n";
   const [chartData, setChartData] = useState({
-    labels: ["Complexidade"], 
+    labels: ["Complexidade"],
     datasets: [
       {
         label: "Complexidade Ciclomática",
-        data: [25, 50], 
+        data: [0, 50],
         backgroundColor: "#e53d00",
         borderColor: "#f30000",
         borderWidth: 1,
       },
     ],
   });
-  const [chartDataAc, setChartDataAc] = useState({
-    labels: ["Acoplamento"], 
-    datasets: [
-      {
-        label: "Acoplamento",
-        data: [25, 50], 
-        backgroundColor: "#e53d00",
-        borderColor: "#f30000",
-        borderWidth: 1,
-      },
-    ],
-  });
-
   useEffect(() => {
     if (complexidade && complexidade.complexidade) {
       const value = parseInt(complexidade.complexidade);
@@ -87,7 +57,7 @@ const AutoAnalise = () => {
         labels: ["Complexidade"],
         datasets: [
           {
-            label: "Nível de Complexidade",
+            label: "Complexidade Ciclomática",
             data: [value, 50],
             backgroundColor: "rgba(224, 49, 5, 0.452)",
             borderColor: "#e53d00",
@@ -99,42 +69,28 @@ const AutoAnalise = () => {
     }
   }, [complexidade]);
 
-  useEffect(() => {
-    if (acoplamento && acoplamento.acoplamento) {
-      const value = parseInt(acoplamento.acoplamento); 
-
-      const newChartData = {
-        labels: ["Acoplamento"], 
-        datasets: [
-          {
-            label: "Nível de Acoplamento",
-            data: [value, 50], 
-            backgroundColor: "rgba(224, 49, 5, 0.452)",
-            borderColor: "#e53d00",
-            borderWidth: 1,
-          },
-        ],
-      };
-      setChartDataAc(newChartData);
-    }
-  }, [acoplamento]);
+  const wsRef = useRef(null);
 
   useEffect(() => {
-    setInterval(() => {
-      try {
-        const ws = new WebSocket("ws://localhost:4000");
-        ws.onopen = () => {};
-        ws.onmessage = (event) => {
+    const intervalId = setInterval(() => {
+      if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+        wsRef.current = new WebSocket("ws://localhost:4000");
+        wsRef.current.onopen = () => {};
+        wsRef.current.onmessage = (event) => {
           const data = JSON.parse(event.data).data;
           const fileName = JSON.parse(event.data).fileName;
           setFileName(H.getFileName(fileName));
           setFileContent(data);
         };
-        return () => {
-          ws.close();
-        };
-      } catch (error) {}
+      }
     }, 1000);
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -148,76 +104,30 @@ const AutoAnalise = () => {
 
   const handleClick = async () => {
     setLoad(true);
-    handleAcoplamento();
-    handleComplexidade();
-    if (provider !== "gpt") {
+    if (!load) {
+      handleComplexidade();
       try {
-        const response = await bardApi.post("/analisar_codigo", {
-          prompt: P.ANALISE_PROMPT,
-          code: JSON.stringify(fileContent),
-        });
-        setResponse(response.data.response);
-        setLoad(false);
-      } catch (error) {
-        setLoad(false);
-      }
-    } else {
-      try {
-        const result = await fetchChatGPTResponse(
-          P.ANALISE_PROMPT + JSON.stringify(fileContent)
+        const response = await aiAutoGeneration(
+          P.ANALISE_PROMPT,
+          JSON.stringify(fileContent)
         );
-        setResponse(result.choices[0].message.content);
-        setLoad(false);
+        setResponse(response);
       } catch (error) {
         setLoad(false);
+        console.error("Erro ao obter a resposta: ", error);
       }
     }
+    setLoad(false);
   };
 
   const handleComplexidade = async () => {
-    if (provider !== "gpt") {
-      try {
-        const newresponse = await bardApiUrlComplexidade.post("/analisar_complexidade", {
-          prompt: P.COMPLEXIDADE_PROMPT,
-          code: JSON.stringify(fileContent),
-        });
-        P.extrairComplexidade(newresponse.data.response, setComplexidade);
-      } catch (error) {
-
-      }
-    } else {
-      try {
-        const result = await fetchChatGPTResponse(
-          P.COMPLEXIDADE_PROMPT + JSON.stringify(fileContent)
-        );
-        P.extrairComplexidade(
-          result.choices[0].message.content,
-          setAcoplamento
-        );
-      } catch (error) {
-      }
-    }
-  };
-  const handleAcoplamento = async () => {
-    if (provider !== "gpt") {
-      try {
-        const newresponse = await bardApiUrlAcoplamento.post("/analisar_acoplamento", {
-          prompt: P.ACOPLAMENTO_PROMPT,
-          code: JSON.stringify(fileContent),
-        });
-       
-        P.extrairAcoplamento(newresponse.data.response, setAcoplamento);
-      } catch (error) {
-      }
-    } else {
-      try {
-        const result = await fetchChatGPTResponse(
-          P.ACOPLAMENTO_PROMPT + JSON.stringify(fileContent)
-        );
-        P.extrairAcoplamento(result.choices[0].message.content, setAcoplamento);
-      } catch (error) {
-      }
-    }
+    try {
+      const response = await aiComplexidadeAnalyser(
+        P.COMPLEXIDADE_PROMPT,
+        JSON.stringify(fileContent)
+      );
+      P.extrairComplexidade(response, setComplexidade);
+    } catch (error) {}
   };
 
   return (
@@ -232,11 +142,23 @@ const AutoAnalise = () => {
         wrapperClass="load-wrapper"
       />
       <S.Center>
-        <Aside />
+        <Aside
+          chartData={chartData}
+          fileName={fileName}
+          isResponse={!!complexidade}
+        />
         <S.ContainerCenter>
           <S.ContainerTitle>
             <Text as={"h2"} fontSize="1.5rem" color="rgba(255, 255, 255, 0.8)">
               Autoanálise
+            </Text>
+            <Text
+              as={"h3"}
+              fontSize="1rem"
+              color="rgba(255, 255, 255, 0.8)"
+              margin={"0"}
+            >
+              Analise seu código em tempo real usando IA
             </Text>
           </S.ContainerTitle>
 
@@ -262,26 +184,13 @@ const AutoAnalise = () => {
                 </Text>
               </>
             ) : (
-              <Text
-                as={"h3"}
-                fontSize="1rem"
-                color="rgba(255, 255, 255, 0.8)"
-                margin={"0"}
-              >
-                Analise seu código em tempo real usando IA
-              </Text>
+              <></>
             )}
             <S.ContainerFile>
               <CodeSnippet fragment={fileContent} />
             </S.ContainerFile>
-            <S.ContainerResponse></S.ContainerResponse>
           </S.Overflow>
         </S.ContainerCenter>
-        <Chart
-          chartData={chartData}
-          chartDataAc={chartDataAc}
-          fileName={fileName}
-        />
       </S.Center>
     </S.Container>
   );

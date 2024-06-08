@@ -109,7 +109,6 @@ const MeusDados = () => {
 
 
   const removeFromFirestore = async (id) => {
-    console.log(id)
     const docRef = doc(db, "code_documentation", id);
 
     try {
@@ -118,9 +117,7 @@ const MeusDados = () => {
       fetchData()
       Swal.fire("Deletado com sucesso!!");
 
-      console.log("Entire Document has been deleted successfully.");
     } catch (ex) {
-      console.log(ex);
     }
   };
 

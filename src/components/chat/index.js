@@ -41,9 +41,9 @@ const Chart = ({ chartData, chartDataAc, fileName }) => {
       <div>
         <Bar data={chartData} options={H.options} height={200} />
       </div>
-      <div>
+      {/* <div>
         <Bar data={chartDataAc} options={H.optionsAc} height={200} />
-      </div>
+      </div> */}
     </S.ContainerGrafics>
   );
 };
